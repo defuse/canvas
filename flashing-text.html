@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hello World Animation</title>
+<script src="modernizr.js"></script>
+<script type="text/javascript">
+
+window.addEventListener("load", eventWindowLoaded, false);
+
+function eventWindowLoaded() {
+    canvasApp();
+}
+
+function canvasSupport() {
+    return Modernizr.canvas;
+}
+
+function canvasApp() {
+    if (!canvasSupport()) {
+        return;
+    }
+
+    var theCanvas = document.getElementById("canvasOne");
+    var context = theCanvas.getContext("2d");
+
+    var text = "Hello World!";
+    var alpha = 0;
+    var fadeIn = true;
+
+    function drawScreen() {
+        // Reset the alpha from previous drawings.
+        context.globalAlpha = 1;
+
+        context.fillStyle = "#FFFFFF";
+        context.fillRect(0, 0, 640, 480);
+
+        if (fadeIn) {
+            alpha += 0.1;
+            if (alpha > 1) {
+                fadeIn = false;
+                alpha = 1;
+            }
+        } else {
+            alpha -= 0.1;
+            if (alpha < 0) {
+                fadeIn = true;
+                alpha = 0;
+            }
+        }
+
+        context.textBaseline = "top";
+
+        context.globalAlpha = alpha;
+        context.fillStyle = "#000000";
+        context.fillRect(0, 0, 640, 480);
+
+
+        var text_alpha = alpha;
+        context.font = "bold 30px arial";
+        for (var i = 0; i < 10; i++) {
+            context.globalAlpha = text_alpha;
+            text_alpha = 1 - text_alpha;
+            context.fillText("TEXT TEXT TEXT", 200, 20 + i*30);
+        }
+
+        context.globalAlpha = 1;
+        context.font = "bold 60px arial";
+        context.fillText("THIS IS SOME TEXT", 30, 380);
+
+    }
+
+    function gameLoop() {
+        setTimeout(gameLoop, 30);
+        drawScreen();
+    }
+
+    gameLoop();
+}
+
+</script>
+</head>
+    <body>
+        <div style="position: absolute; top: 50px; left: 50px;">
+            <canvas id="canvasOne" width="640" height="480">
+                Your browser does not support HTML5 canvas.
+            </canvas>
+        </div>
+    </body>
+</html>
