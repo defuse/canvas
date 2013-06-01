@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hello World Animation</title>
+<script src="modernizr.js"></script>
+<script type="text/javascript">
+
+window.addEventListener("load", eventWindowLoaded, false);
+
+function eventWindowLoaded() {
+    canvasApp();
+}
+
+function canvasSupport() {
+    return Modernizr.canvas;
+}
+
+function canvasApp() {
+    if (!canvasSupport()) {
+        return;
+    }
+
+    var theCanvas = document.getElementById("canvasOne");
+    var context = theCanvas.getContext("2d");
+
+    spriteSheet = new Image();
+    spriteSheet.addEventListener('load', sheetLoaded);
+    spriteSheet.src = "spritelib_gpl/shooter/1945.png";
+
+    function sheetLoaded() {
+        gameLoop();
+    }
+
+    var foo = 0;
+
+    function drawScreen() {
+        context.fillStyle = "#000000";
+        context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+        if (foo == 0) {
+            foo = 1;
+            context.drawImage(spriteSheet, 597, 5, 99, 96, 0, 0, 99, 96);
+        } else if (foo == 1) {
+            foo = 2;
+            context.drawImage(spriteSheet, 597 + 99, 5, 99, 96, 0, 0, 99, 96);
+        } else if (foo == 2) {
+            foo = 0;
+            context.drawImage(spriteSheet, 597 + 99 + 99, 5, 99, 96, 0, 0, 99, 96);
+        }
+    }
+
+    function gameLoop() {
+        setTimeout(gameLoop, 100);
+        drawScreen();
+    }
+}
+
+</script>
+</head>
+    <body>
+        <div style="position: absolute; top: 50px; left: 50px;">
+            <canvas id="canvasOne" width="640" height="480">
+                Your browser does not support HTML5 canvas.
+            </canvas>
+        </div>
+    </body>
+</html>
