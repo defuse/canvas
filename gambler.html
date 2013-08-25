@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hello World Animation</title>
+<script src="modernizr.js"></script>
+<script type="text/javascript">
+
+window.addEventListener("load", eventWindowLoaded, false);
+
+function eventWindowLoaded() {
+    canvasApp();
+}
+
+function canvasSupport() {
+    return Modernizr.canvas;
+}
+
+function canvasApp() {
+    if (!canvasSupport()) {
+        return;
+    }
+
+    var theCanvas = document.getElementById("canvasOne");
+    var context = theCanvas.getContext("2d");
+
+    function drawScreen() {
+        var position = Math.floor(theCanvas.height / 2);
+        context.globalAlpha=0.15;
+        context.fillStyle = "#000000";
+        context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+        context.globalAlpha=1.0;
+        context.fillStyle = "#FFFFFF";
+        context.fillRect(0, position, theCanvas.width, 1);
+        for (var i = 0; i < theCanvas.width; i++) {
+            if (Math.random() <= 0.5) {
+                position += 4;
+                context.fillStyle = "#FF0000";
+            } else {
+                position -= 4;
+                context.fillStyle = "#00FF00";
+            }
+            context.fillRect(i, position, 1, 1);
+        }
+    }
+
+    function gameLoop() {
+        setTimeout(gameLoop, 50);
+        drawScreen();
+    }
+
+    gameLoop();
+}
+
+</script>
+</head>
+    <body style="background-color: black;">
+        <div style="position: absolute; top: 0px; left: 0px;">
+            <canvas id="canvasOne" width="1500" height="800">
+                Your browser does not support HTML5 canvas.
+            </canvas>
+        </div>
+    </body>
+</html>
