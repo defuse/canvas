@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            // There will be two bodies: The "sun" and the "earth".
+
+            var theSun = {};
+            // The initial position of the sun.
+            theSun.x = 200;
+            theSun.y = 300;
+            // The initial velocity of the sun.
+            theSun.vx = 3; // make the whole system move right so it's a little more interesting.
+            theSun.vy = 0;
+
+            var theEarth = {};
+            // The initial position of the earth (just right of the sun).
+            theEarth.x = 500;
+            theEarth.y = 300;
+            // The initial velocity of the earth.
+            theEarth.vx = 3;
+            theEarth.vy = -100;
+
+            // This is the amount of time we progress in each iteration. 
+            // The smaller this value, the more "accurate" the simulation will be.
+            var epsilon = 0.05;
+
+            var GtimesMassOfSun = 6000000;
+
+            function drawScreen() {
+
+                // We're in space so make the whole canvas black.
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                // The way we progress in the simulation is to compute the next
+                // position and velocity of the objects given their current
+                // velocity and acceleration. This is, of course, not 100%
+                // accurate, but gives a good approximation when epsilon is
+                // small.
+                
+                // Compute the earth's next position given its current velocity.
+                theEarth.x = theEarth.x + epsilon * theEarth.vx;
+                theEarth.y = theEarth.y + epsilon * theEarth.vy;
+
+                // Compute the distance between the earth and the sun.
+                var distance_x = theSun.x - theEarth.x;
+                var distance_y = theSun.y - theEarth.y;
+                var r = Math.sqrt(distance_x*distance_x + distance_y*distance_y);
+
+                // Compute the earth's acceleration.
+                var ax = GtimesMassOfSun * distance_x / (r*r*r);
+                var ay = GtimesMassOfSun * distance_y / (r*r*r);
+
+                // Why?
+                // See the lecture notes for the details, but here is a quick
+                // explanation:
+                //
+                // The ratio of the force towards the sun and the force in the X 
+                // direction is the same as the ratio of the distance towards
+                // the sun and the distance in the X direction. So:
+                //
+                // F/F_x = r/x
+                // F_x = F * x/r
+                // F_x = GMmx/r^3
+                // ma_x = GMmx/r^3
+                // a_x = GMx/r^3
+                //
+                // Similarly, for a_y:
+                //
+                // a_y = GMy/r^3
+
+                // Compute the earth's next velocity based on the current
+                // acceleration.
+                theEarth.vx = theEarth.vx + epsilon * ax;
+                theEarth.vy = theEarth.vy + epsilon * ay;
+
+                // Compute the sun's next position based on the current
+                // velocity.
+                theSun.x = theSun.x + epsilon * theSun.vx;
+                theSun.y = theSun.y + epsilon * theSun.vy;
+
+                // Computing the sun's next velocity based on its acceleration
+                // has been omitted for simplicity.
+
+                // Draw the sun.
+                context.beginPath();
+                context.arc(theSun.x, theSun.y, 20, 0, 2 * Math.PI, false);
+                context.fillStyle = 'yellow';
+                context.fill();
+
+                // Draw the earth.
+                context.beginPath();
+                context.arc(theEarth.x, theEarth.y, 5, 0, 2 * Math.PI, false);
+                context.fillStyle = 'blue';
+                context.fill();
+            }
+
+
+            function gameLoop() {
+                setTimeout(gameLoop, 20);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body>
+    <p>
+    In the <a href="http://www.feynmanlectures.caltech.edu/I_09.html">ninth
+        lecture from the Feynman Lectures on Physics</a>, Feynman describes
+    Newton's first two laws of motion. Near the end of the lecture, he describes
+    how we can compute the orbit of a planet given just newton's laws. At the
+    time, this was done done manually, and was computed using a large table.
+    After reading it, I <em>had</em> to implement it in a computer. This
+    animation is the result. Call the yellow circle the "sun" and the blue
+    circle the "earth." It assumes the earth is affected by the sun's gravity,
+    but the sun is not affected by the earth, and shows how the orbit forms an
+    ellipse. Read the source code for more details.
+    </p>
+    <canvas id="canvasOne" width="1500" height="600" style="border: solid white 1px;">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>
