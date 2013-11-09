@@ -25,36 +25,100 @@
 
             // There will be two bodies: The "sun" and the "earth".
 
+            var scale = 6000000000;
+            var center_x = scale * theCanvas.width / 2;
+            var center_y = scale * theCanvas.height / 2;
+
             var objects = [
                 // Sun
                 {
-                    x: 900000000000,
-                    y: 900000000000,
-                    radius: 20,
+                    x: center_x,
+                    y: center_y,
+                    radius: 5,
                     vx: 0,
                     vy: 0,
                     mass: 1.989e30,
                     color: 'yellow',
                 },
+                // Mercury
+                {
+                    x: center_x + 57909100*1000,
+                    y: center_y,
+                    radius: 2,
+                    vx: 0,
+                    vy: -47870,
+                    mass: 3.3022e23,
+                    color: 'red',
+                },
+                // Venus
+                {
+                    x: center_x + 108208000*1000,
+                    y: center_y,
+                    radius: 3,
+                    vx: 0,
+                    vy: -35020.6,
+                    mass: 4.8676e24,
+                    color: 'white',
+                },
                 // Earth
                 {
-                    x: 900000000000 + 1.496e11,
-                    y: 900000000000,
-                    radius: 5,
+                    x: center_x + 1.496e11,
+                    y: center_y,
+                    radius: 3,
                     vx: 0,
                     vy: -29805.6,
                     mass: 5.972e24,
                     color: 'blue',
                 },
+                // Mars
+                {
+                    x: center_x + 227939100*1000,
+                    y: center_y,
+                    radius: 2,
+                    vx: 0,
+                    vy: -24077.6,
+                    mass: 6.4185e23,
+                    color: 'red',
+                },
                 // Jupiter
                 {
-                    x: 900000000000 + 778547200*1000,
-                    y: 900000000000,
-                    radius: 15,
+                    x: center_x + 778547200*1000,
+                    y: center_y,
+                    radius: 3,
                     vx: 0,
                     vy: -13070.0,
                     mass: 1.8986e27,
                     color: 'brown',
+                },
+                // Saturn
+                {
+                    x: center_x + 1433449370*1000,
+                    y: center_y,
+                    radius: 3,
+                    vx: 0,
+                    vy: -9690.0,
+                    mass: 5.6846e26,
+                    color: 'cyan',
+                },
+                // Uranus
+                {
+                    x: center_x + 2876679082*1000,
+                    y: center_y,
+                    radius: 2,
+                    vx: 0,
+                    vy: -6810.0,
+                    mass: 8.681e25,
+                    color: 'blue',
+                },
+                // Neptune
+                {
+                    x: center_x + 4503443661*1000,
+                    y: center_y,
+                    radius: 2,
+                    vx: 0,
+                    vy: -5430.0,
+                    mass: 1.0243e26,
+                    color: 'green',
                 },
             ];
 
@@ -104,7 +168,7 @@
 
                 for (i = 0; i < objects.length; i++) {
                     context.beginPath();
-                    context.arc(objects[i].x/3000000000, objects[i].y/3000000000, objects[i].radius, 0, 2*Math.PI, false);
+                    context.arc(objects[i].x/scale, objects[i].y/scale, objects[i].radius, 0, 2*Math.PI, false);
                     context.fillStyle = objects[i].color;
                     context.fill();
                 }
@@ -121,20 +185,8 @@
 
     </script>
 </head>
-<body>
-    <p>
-    In the <a href="http://www.feynmanlectures.caltech.edu/I_09.html">ninth
-        lecture from the Feynman Lectures on Physics</a>, Feynman describes
-    Newton's first two laws of motion. Near the end of the lecture, he describes
-    how we can compute the orbit of a planet given just newton's laws. At the
-    time, this was done done manually, and was computed using a large table.
-    After reading it, I <em>had</em> to implement it in a computer. This
-    animation is the result. Call the yellow circle the "sun" and the blue
-    circle the "earth." It assumes the earth is affected by the sun's gravity,
-    but the sun is not affected by the earth, and shows how the orbit forms an
-    ellipse. Read the source code for more details.
-    </p>
-    <canvas id="canvasOne" width="1500" height="800" style="border: solid white 1px;">
+<body style="background-color: black;">
+    <canvas id="canvasOne" width="3000" height="1500">
         Your browser does not support HTML5 canvas.
     </canvas>
 </body>
