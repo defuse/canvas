@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        var stop_sim = false;
+
+        function startSim() {
+            stop_sim = false;
+
+            document.getElementById("btnstart").disabled = true;
+            document.getElementById("btnstop").disabled = false;
+
+            if (!canvasSupport()) {
+                alert('Canvas not supported.');
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            var velocity_factor = +(document.getElementById("velocity").value);
+            var c = 299792458;
+            var ship_velocity = velocity_factor * c;
+            var ship_width = +(document.getElementById("width").value);
+            var ship_height = ship_width / 2;
+            var v2_over_c2 = (ship_velocity * ship_velocity) / (c*c);
+
+            // ship AT REST is always 500 px wide, we start it 50px in.
+            var pixels_per_meter = 500 / ship_width;
+
+            if (ship_width <= 0 || velocity_factor < 0 || velocity_factor > 1) {
+                alert('Invalid parameters.');
+                return;
+            }
+
+            function timer(rest_time) {
+                return rest_time / 50;
+            }
+
+            var time = 0;
+
+            function drawScreen() {
+                time += 1;
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                var observed_ship_height = ship_height;
+                var observed_ship_width = ship_width * Math.sqrt(1 - v2_over_c2);
+
+                var observer_time = time/50;
+
+                var clock1_time = (observer_time - ship_velocity * (-ship_width/2 * Math.sqrt(1-v2_over_c2) + ship_velocity * observer_time) / (c*c)) / Math.sqrt(1-v2_over_c2);
+                var clock2_time = (observer_time - ship_velocity * (ship_width/2 * Math.sqrt(1-v2_over_c2) + ship_velocity * observer_time) / (c*c)) / Math.sqrt(1-v2_over_c2);
+                var clock3_time = (observer_time - ship_velocity * (0 * Math.sqrt(1-v2_over_c2) + ship_velocity * observer_time) / (c*c)) / Math.sqrt(1-v2_over_c2);
+
+                context.fillStyle = "#FFFFFF";
+                context.fillRect(50, 50, observed_ship_width * pixels_per_meter, observed_ship_height * pixels_per_meter);
+
+                context.fillStyle = "#FF0000";
+                context.font = "bold 16px Arial";
+                context.save();
+                context.translate(35, 50);
+                context.rotate(-3*Math.PI/2);
+                context.fillText(clock1_time, 0, 0);
+                context.restore();
+
+                context.fillStyle = "#FF0000";
+                context.font = "bold 16px Arial";
+                context.save();
+                context.translate(35 + observed_ship_width*pixels_per_meter + 15, 50);
+                context.rotate(-3*Math.PI/2);
+                context.fillText(clock2_time, 0, 0);
+                context.restore();
+
+                context.fillStyle = "#FF0000";
+                context.font = "bold 16px Arial";
+                context.save();
+                context.translate(35 + observed_ship_width*pixels_per_meter/2 + 7, 50);
+                context.rotate(-3*Math.PI/2);
+                context.fillText(clock3_time, 0, 0);
+                context.restore();
+            }
+
+            function gameLoop() {
+                if (stop_sim) {
+                    return;
+                }
+                setTimeout(gameLoop, 20);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+    
+        function stopSim() {
+            stop_sim = true;
+            document.getElementById("btnstart").disabled = false;
+            document.getElementById("btnstop").disabled = true;
+        }
+
+    </script>
+</head>
+<body>
+    <p>
+    This is a demonstration of special relativity. You are "at rest" observing
+    a space ship going some fraction of the speed of light (constant velocity)
+    away from you. The space ship has three clocks: one at the rear of the ship,
+    one at the center, and one at the front of the ship. The clocks tick every
+    second from the point of view of the astronaut, and are synchronized so that
+    if each emits a photon at each tick, it will arrive at the center clock at
+    the same time in the astronaut's frame of reference. The slowing of the
+    clocks, the failure of synchronicity, and the shortening of the ship (as
+    observed by you) is demonstrated. However, it is not accurate in the
+    following way: To show what is going on, the "camera" is made to track the
+    ship. If the camera actually WERE tracking the ship, it would be in IT's
+    inertial reference frame and would not observe any effect. So this ONLY
+    shows what YOU think the ship looks like from your "stationary" position.
+    </p>
+    Velocity: <input type="text" id="velocity" value="0.01" />*c
+    <br />
+    Space ship width (at rest): <input type="text" id="width" value="100" />m
+    <br />
+    <input type="button" value="Start" id="btnstart" onclick="startSim()"/>
+    <input type="button" value="Stop" id="btnstop" disabled="true" onclick="stopSim()" />
+    <br />
+    <canvas id="canvasOne" width="600" height="350">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>
