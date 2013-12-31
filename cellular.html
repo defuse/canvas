@@ -61,34 +61,28 @@
                     for (var j = 0; j < GRID_DIMENSION; j++) {
                         var n = 0;
 
-                        if (i - 1 >= 0) {
-                            if (j - 1 >= 0) {
-                                if (grid[i-1][j-1].s === 1) { n++ }
-                            }
-                            if (grid[i-1][j].s === 1) { n++ }
-                            if (j + 1 < GRID_DIMENSION) {
-                                if (grid[i-1][j+1].s === 1) { n++ }
-                            }
-                        }
+                        b_i = i - 1;
+                        b_j = j - 1;
 
-                        if (j - 1 >= 0) {
-                            if (grid[i][j-1].s === 1) { n++ }
-                        }
-                        if (j + 1 < GRID_DIMENSION) {
-                            if (grid[i][j+1].s === 1) { n++ }
-                        }
+                        a_i = i + 1;
+                        a_j = j + 1;
 
-                        if (i + 1 < GRID_DIMENSION) {
-                            if (j - 1 >= 0) {
-                                if (grid[i+1][j-1].s === 1) { n++ }
-                            }
-                            if (grid[i+1][j].s === 1) { n++ }
-                            if (j + 1 < GRID_DIMENSION) {
-                                if (grid[i+1][j+1].s === 1) { n++ }
-                            }
-                        }
+                        /* Wrap around the edges of the grid. */
+                        if (b_i < 0) { b_i = GRID_DIMENSION - 1; }
+                        if (b_j < 0) { b_j = GRID_DIMENSION - 1; }
+                        if (a_i >= GRID_DIMENSION) { a_i = 0; }
+                        if (a_j >= GRID_DIMENSION) { a_j = 0; }
 
+                        if (grid[b_i][b_j].s === 1) { n++ }
+                        if (grid[b_i][j].s === 1) { n++ }
+                        if (grid[b_i][a_j].s === 1) { n++ }
 
+                        if (grid[i][b_j].s === 1) { n++ }
+                        if (grid[i][a_j].s === 1) { n++ }
+
+                        if (grid[a_i][b_j].s === 1) { n++ }
+                        if (grid[a_i][j].s === 1) { n++ }
+                        if (grid[a_i][a_j].s === 1) { n++ }
 
                         // Any live cell with fewer than two live neighbours dies, as if caused by under-population.
                         // Any live cell with two or three live neighbours lives on to the next generation.
