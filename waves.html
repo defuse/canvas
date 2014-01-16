@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            var SIDE_LENGTH = 100; 
+
+            var cells = Array(SIDE_LENGTH);
+            for (var i = 0; i < SIDE_LENGTH; i++) {
+                cells[i] = Array(SIDE_LENGTH);
+                for (var j = 0; j < SIDE_LENGTH; j++) {
+                    cells[i][j] = {};
+                    cells[i][j].volume = 0;
+                    cells[i][j].out_flow_rate = 0;
+                    if (Math.random() > 0.5) {
+                        cells[i][j].volume = 127;
+                    } else if (Math.random() > 0.5) {
+                        cells[i][j].volume = -127;
+                    }
+                }
+            }
+
+            var cell_width = theCanvas.width / SIDE_LENGTH;
+            var cell_height = theCanvas.height / SIDE_LENGTH;
+
+
+            function drawScreen() {
+                context.fillStyle = "#FF0000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                var ass = "";
+                for (var i = 0; i < SIDE_LENGTH; i++) {
+                    for (var j = 0; j < SIDE_LENGTH; j++) {
+
+                        if (cells[i][j].volume < -127) {
+                            cells[i][j].volume = -127;
+                        }
+
+                        if (cells[i][j].volume > 127) {
+                            cells[i][j].volume = 127;
+                        }
+
+                        var color = Math.floor(cells[i][j].volume + 127);
+                        context.fillStyle = "rgb(" + color + "," + color + "," + color + ")";
+                        ass += "rgb(" + color + "," + color + "," + color + ")";
+                        context.fillRect(i * cell_width, j * cell_height, cell_width, cell_height);
+
+                        var flow = 0;
+
+                        for (var x = -1; x <= 1; x++) {
+                            for (var y = -1; y <= 1; y++) {
+                                if (x == 0 && y == 0) {
+                                    continue;
+                                }
+                                var n_x = i + x;
+                                var n_y = j + y;
+                                if (n_x < 0) {
+                                    n_x = SIDE_LENGTH - 1;
+                                } else if (n_x >= SIDE_LENGTH) {
+                                    n_x = 0;
+                                }
+                                if (n_y < 0) {
+                                    n_y = SIDE_LENGTH - 1;
+                                } else if (n_y >= SIDE_LENGTH) {
+                                    n_y = 0;
+                                }
+                                flow += cells[i][j].volume - cells[n_x][n_y].volume;
+                            }
+                        }
+
+                        flow = flow / 7;
+                        cells[i][j].out_flow_rate = flow;
+                    }
+                }
+
+                for (var i = 0; i < SIDE_LENGTH; i++) {
+                    for (var j = 0; j < SIDE_LENGTH; j++) {
+
+                        var to_give = cells[i][j].out_flow_rate / 7;
+
+                        for (var x = -1; x <= 1; x++) {
+                            for (var y = -1; y <= 1; y++) {
+                                if (x == 0 && y == 0) {
+                                    continue;
+                                }
+                                var n_x = i + x;
+                                var n_y = j + y;
+                                if (n_x < 0) {
+                                    n_x = SIDE_LENGTH - 1;
+                                } else if (n_x >= SIDE_LENGTH) {
+                                    n_x = 0;
+                                }
+                                if (n_y < 0) {
+                                    n_y = SIDE_LENGTH - 1;
+                                } else if (n_y >= SIDE_LENGTH) {
+                                    n_y = 0;
+                                }
+
+                                cells[n_x][n_y].volume += to_give;
+                            }
+                        }
+
+                        cells[i][j].volume -= cells[i][j].out_flow_rate;
+                    }
+                }
+
+            }
+
+
+            function gameLoop() {
+                setTimeout(gameLoop, 100);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body style="background-color: black;">
+    <canvas id="canvasOne" width="500" height="500">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>
