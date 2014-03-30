@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weird thing</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            var time = 0.0;
+            var pixel_offset = 0.03;
+
+            var addition = 100;
+
+            var actual_time = 0.0;
+
+            function drawScreen() {
+                actual_time += 0.3;
+                time += Math.sin(actual_time);
+                // time += -0.4;
+                for (var i = 0; i < theCanvas.width; i+=1) {
+                    var value = 127.0 * Math.sin(time + i*pixel_offset);
+                    var color = Math.round(value) + 127 - addition;
+                    var r_color = color;
+                    var g_color = color;
+                    var b_color = color;
+                    var rand = Math.random();
+                    if (rand < 0.333) {
+                        r_color += addition;
+                    } else if (rand < 0.6666) {
+                        g_color += addition;
+                    } else {
+                        b_color += addition;
+                    }
+                    context.fillStyle = "rgb(" + r_color + "," + g_color + "," + b_color + ")";
+                    context.fillRect(i, 0, 1, theCanvas.height);
+                }
+
+                var to_draw = Math.round(25 * Math.sin(actual_time/3.0));
+                var yellow = false;
+                if (to_draw < 0) {
+                    yellow = true;
+                    to_draw = -to_draw;
+                }
+                for (var i = 0; i < to_draw; i++) {
+                    var x = Math.floor(Math.random() * theCanvas.width);
+                    var y = Math.floor(Math.random() * theCanvas.height);
+                    if (yellow) {
+                        context.fillStyle = "#FFFF00";
+                    } else {
+                        context.fillStyle = "#FF0000";
+                    }
+                    context.fillRect(x, y, 30, 30);
+                }
+            }
+
+            function gameLoop() {
+                setTimeout(gameLoop, 30);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body style="background-color: black;">
+    <canvas id="canvasOne" width="1920" height="1080">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>

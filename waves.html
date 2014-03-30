@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Newton approximation</title>
+    <title>Weird thing</title>
     <script src="modernizr.js"></script>
     <script type="text/javascript">
         window.addEventListener("load", eventWindowLoaded, false);
@@ -23,7 +23,7 @@
             var theCanvas = document.getElementById("canvasOne");
             var context = theCanvas.getContext("2d");
 
-            var SIDE_LENGTH = 100; 
+            var SIDE_LENGTH = 200; 
 
             var cells = Array(SIDE_LENGTH);
             for (var i = 0; i < SIDE_LENGTH; i++) {
@@ -128,7 +128,7 @@
 
 
             function gameLoop() {
-                setTimeout(gameLoop, 100);
+                setTimeout(gameLoop, 30);
                 drawScreen();
             }
 
@@ -138,7 +138,7 @@
     </script>
 </head>
 <body style="background-color: black;">
-    <canvas id="canvasOne" width="500" height="500">
+    <canvas id="canvasOne" width="400" height="400">
         Your browser does not support HTML5 canvas.
     </canvas>
 </body>
