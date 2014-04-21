@@ -93,6 +93,9 @@
                             // If collision, don't add either of them, but
                             // create a new bigger drop.
                             var newDrop = {};
+                            // TODO: instead of using the biggest one, it should
+                            // be like a weighted average of the two positions
+                            // based on volume or something like that
                             if (drop_a.r > drop_b.r) {
                                 newDrop.x = drop_a.x;
                                 newDrop.y = drop_a.y;
