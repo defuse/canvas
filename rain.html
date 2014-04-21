@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            var MAX_DROP_RADIUS = 10;
+            var MIN_DROP_RADIUS = 3;
+            var MAX_DROPS = 1000;
+
+            var VELOCITY_CONSTANT = 1;
+
+            // 3 drops per frame
+            var DROP_RATE = 20;
+            // TODO: add per frames so you can say like 3 every 20 frames
+
+            var drops = [];
+
+            function addNewDrops() {
+                for (var i = 0; i < DROP_RATE && drops.length < MAX_DROPS; i++) {
+                    var newDrop = {}
+                    newDrop.x = Math.floor(Math.random() * theCanvas.width);
+                    newDrop.y = Math.floor(Math.random() * theCanvas.height);
+                    // TODO: checkme
+                    newDrop.r = MIN_DROP_RADIUS + Math.floor(Math.random() * (MAX_DROP_RADIUS - MIN_DROP_RADIUS + 1));
+                    drops.push(newDrop);
+                }
+                // TODO: big drops should be more rare than small drops
+            }
+
+            function drawDrops() {
+                for (var i = 0; i < drops.length; i++) {
+                    var drop = drops[i];
+                    context.beginPath();
+                    context.arc(drop.x, drop.y, drop.r, 0, 2*Math.PI, false);
+                    context.fillStyle = 'white';
+                    context.fill();
+                }
+            }
+
+            function moveDrops() {
+                var newDrops = []; 
+                for (var i = 0; i < drops.length; i++) {
+                    var drop = drops[i];
+                    drop.x += drop.r * VELOCITY_CONSTANT;
+                    if (drop.x - drop.r > theCanvas.width) {
+                        // drop is off the edge, don't re-add it
+                    } else {
+                        newDrops.push(drop);
+                    }
+                }
+
+                drops = newDrops;
+            }
+
+            function mergeDrops() {
+                var newDrops = [];
+                var hadCollisions = [];
+                for (var i = 0; i < drops.length; i++) {
+                    collided = false;
+
+                    // Find and merge with the first drop it's in a collision
+                    // with, if any.
+                    for (var j = i+1; j < drops.length; j++) {
+                        var drop_a = drops[i];
+                        var drop_b = drops[j];
+
+                        var distance_x = drop_a.x - drop_b.x;
+                        var distance_y = drop_a.y - drop_b.y;
+
+                        var distance = Math.sqrt(distance_x * distance_x + distance_y * distance_y);
+
+                        if (distance <= drop_a.r + drop_b.r) {
+                            // If collision, don't add either of them, but
+                            // create a new bigger drop.
+                            var newDrop = {};
+                            if (drop_a.r > drop_b.r) {
+                                newDrop.x = drop_a.x;
+                                newDrop.y = drop_a.y;
+                            } else {
+                                newDrop.x = drop_b.x;
+                                newDrop.y = drop_b.y;
+                            }
+                            newDrop.r = drop_a.r + Math.sqrt(drop_b.r); // FIXME
+                            newDrops.push(newDrop);
+                            collided = true;
+                            hadCollisions.push(i);
+                            hadCollisions.push(j);
+                            break;
+                        }
+
+                    }
+                    if (!collided && hadCollisions.indexOf(i) == -1) {
+                        newDrops.push(drops[i]);
+                    }
+                }
+                drops = newDrops;
+            }
+
+            function drawScreen() {
+                // Fill with black.
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                addNewDrops();
+                drawDrops();
+                moveDrops();
+                mergeDrops();
+            }
+
+
+            function gameLoop() {
+                setTimeout(gameLoop, 30);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body style="background-color: black;">
+    <canvas id="canvasOne" width="1920" height="800">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>
