@@ -27,7 +27,7 @@
             var MIN_DROP_RADIUS = 3;
             var MAX_DROPS = 1000;
 
-            var VELOCITY_CONSTANT = 1;
+            var VELOCITY_CONSTANT = 0.5;
 
             // 3 drops per frame
             var DROP_RATE = 20;
@@ -100,7 +100,17 @@
                                 newDrop.x = drop_b.x;
                                 newDrop.y = drop_b.y;
                             }
-                            newDrop.r = drop_a.r + Math.sqrt(drop_b.r); // FIXME
+                            var volume_a = 0.5 * 4.0/3.0 * Math.PI * drop_a.r*drop_a.r*drop_a.r;
+                            var volume_b = 0.5 * 4.0/3.0 * Math.PI * drop_a.r*drop_a.r*drop_b.r;
+                            var total_volume = volume_a + volume_b;
+                            var radius = Math.pow(total_volume / (0.5*4.0/3.0) / Math.PI, 1/3.0);
+
+                            // // HACK to make it look more realistic
+                            // if (radius > MAX_DROP_RADIUS * 3) {
+                            //     radius = MAX_DROP_RADIUS * 3;
+                            // }
+
+                            newDrop.r = radius;
                             newDrops.push(newDrop);
                             collided = true;
                             hadCollisions.push(i);
