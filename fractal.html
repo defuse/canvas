@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            // var re_min = -2;
+            // var re_max = 0.6;
+            // var im_min = -1.3;
+            // var im_max = 1.3;
+
+            var re_min = -0.56350;
+            var re_max = re_min + 0.03;
+            var im_min = -0.4948900;
+            var im_max = im_min + 0.03;
+
+            var re_per_px = (re_max - re_min) / theCanvas.width;
+            var im_per_px = (im_max - im_min) / theCanvas.height;
+
+            var MAX_ITERATIONS = 1000;
+
+            function multComplex(a, b) {
+                re = a[0]*b[0] - a[1]*b[1];
+                im = a[0]*b[1] + a[1]*b[0];
+                return [re,im];
+            }
+
+            function addComplex(a, b) {
+                return [a[0]+b[0], a[1]+b[1]];
+            }
+
+            function absVal(a) {
+                return Math.sqrt(a[0]*a[0] + a[1]*a[1]);
+            }
+
+            function inSet(re, im) {
+                c = [re,im]
+                // alert(c);
+                var z_n = [0, 0];
+                for (var i = 0; i < MAX_ITERATIONS; i++) {
+                   // alert(z_n);
+                    z_n = multComplex(z_n, z_n);
+                    z_n = addComplex(z_n, c);
+                    
+                    if (isNaN(absVal(z_n))) {
+                        return false;
+                    }
+                }
+                return true;
+
+                if (isNaN(absVal(z_n))) {
+                    return false;
+                }
+                return true;
+
+                //alert(z_n);
+                if (absVal(z_n) < 10000) {
+                    return true;
+                }
+                return false;
+            }
+
+            function drawScreen() {
+                inSet(-0.406, 0);
+                //return;
+                // We're in space so make the whole canvas black.
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                for (var re_pix = 0; re_pix < theCanvas.width; re_pix += 1) {
+                    for (var im_pix = 0; im_pix < theCanvas.height; im_pix += 1)
+                    {
+                        var re_val = re_min + re_pix*re_per_px;
+                        var im_val = im_min + im_pix*im_per_px;
+                        if (re_val < 0.45 && re_val < 0.4 && im_val < 0.1 && im_val > -0.1) {
+                            // alert('HERE');
+                        }
+                        if (inSet(re_val, im_val)) {
+                            // draw
+                            context.fillStyle = "#FFFFFF";
+                            context.fillRect(re_pix, im_pix, 1, 1);
+                        } else {
+                            // leave blank
+                        }
+                    }
+                }
+
+            }
+
+
+            function gameLoop() {
+                //setTimeout(gameLoop, 20);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body style="background-color: blue;">
+    <canvas id="canvasOne" width="1000" height="1000">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>
