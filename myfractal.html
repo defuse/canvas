@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Newton approximation</title>
     <script src="modernizr.js"></script>
+    <script src="sha256.js"></script>
     <script type="text/javascript">
         window.addEventListener("load", eventWindowLoaded, false);
 
@@ -27,18 +28,205 @@
             var box_height = 1;
             var mag = 0;
             var mag_pow = 1;
+            var stop = false;
 
-            function inSetByPath(mag, mag_pow, path) {
+            function rgb(r, g, b) {
+                return "rgb(" + r + ", " + g + ", " + b + ")";
+            }
+
+            function hash(str) {
+                var h = SHA256(str);
+                var firstchar = h.substring(0, 1);
+                var n = parseInt(firstchar, 16);
+                return n > 8;
+            }
+
+            function snowflakeanglething(mag, mag_pow, path) {
                 for (var i = 1; i < mag; i++) {
                     if (path[i].y == path[i].x || path[i-1].y == path[i].x) {
                     } else {
-                        return false;
+                        return "#000000";
                     }
                 }
-                return true;
+                return "#FFFFFF";
             }
 
-            function inSet(mag, mag_pow, x, y) {
+            function ah(mag, mag_pow, path) {
+                var sum1 = 0;
+                var sum2 = 0;
+                var sum3 = 0;
+                for (var i = 0; i+1 < mag; i+=2) {
+                    sum1 += path[i+1].x * path[mag-i-1].y + path[i].x * path[i+1].y;
+                    sum2 += path[i+1].x * path[i].y + path[i].x * path[i+1].y;
+                    sum3 += path[i].x ^ path[i].y + path[i+1].x ^ path[i+1].y;
+                }
+                var color1 = Math.floor(sum1/(mag) * 255);
+                var color2 = Math.floor(sum2/(mag) * 255);
+                var color3 = Math.floor(sum3/(mag) * 255);
+                return rgb(color1, color2, color3);
+            }
+
+            function buildPathString(path) {
+                var str = "";
+                for (var i = 0; i < path.length; i++) {
+                    str += "(" + path[i].x + "," + path[i].y + ")";
+                }
+                return str;
+            }
+
+            function ah2(mag, mag_pow, path) {
+                for (var i = 0; i < mag/2; i++) {
+                    if ((path[i].x == path[Math.floor(mag/2) + i].x)
+                        ^ (path[i].y == path[Math.floor(mag/2) + i].y)) {
+
+                    } else {
+                        return "#000000";
+                    }
+                }
+                return "#FFFFFF";
+            }
+
+            function ah3(mag, mag_pow, path) {
+                for (var i = 0; i < mag; i++) {
+                    var first_i = path.slice(0, i);
+                    var bit = hash(buildPathString(first_i));
+                    if (!bit) {
+                        return "#000000";
+                    }
+                }
+                return "#FFFFFF";
+            }
+
+            function W(path) {
+                if (path.length == 0) {
+                    return true;
+                }
+                var prefix = path.slice(0, path.length - 2);
+                if (!W(prefix)) {
+                    return false;
+                }
+                var path_str = buildPathString(path);
+                var Z = [];
+                if (hash(path_str+"A")) {
+                    if (hash(path_str+"A1")) {
+                        Z = [
+                            {
+                                x: 0,
+                                y: 1
+                            },
+                            {
+                                x: 1,
+                                y: 0
+                            },
+                        ];
+                    } else {
+                        Z = [
+                            {
+                                x: 1,
+                                y: 1
+                            },
+                            {
+                                x: 0,
+                                y: 0
+                            },
+                        ];
+                    }
+                } else {
+                    if (hash(path_str+"B")) {
+                        if (hash(path_str+"B1")) {
+                            Z = [
+                                {
+                                    x: 0,
+                                    y: 1
+                                },
+                                {
+                                    x: 1,
+                                    y: 1
+                                },
+                            ];
+                        } else {
+                            Z = [
+                                {
+                                    x: 1,
+                                    y: 0
+                                },
+                                {
+                                    x: 0,
+                                    y: 0
+                                },
+                            ];
+                        }
+                    } else {
+                        if (hash(path_str+"B2")) {
+                            Z = [
+                                {
+                                    x: 0,
+                                    y: 1
+                                },
+                                {
+                                    x: 0,
+                                    y: 0
+                                },
+                            ];
+                        } else {
+                            Z = [
+                                {
+                                    x: 1,
+                                    y: 0
+                                },
+                                {
+                                    x: 1,
+                                    y: 1
+                                },
+                            ];
+                        }
+                    }
+                }
+
+                last = path[path.length - 1];
+                if (
+                        (Z[0].x == last.x && Z[0].y == last.y) ||
+                        (Z[1].x == last.x && Z[1].y == last.y)
+                   ) {
+                    return true;
+                }
+                return false;
+            }
+
+            function hashfract(mag, mag_pow, path) {
+                if (W(path)) {
+                    return "#FFFFFF";
+                } else {
+                    return "#000000";
+                }
+            }
+
+            function hammingB(mag, mag_pow, path) {
+                var diff = 0;
+                for (var i = 0; i < mag; i++) {
+                    if (path[i].y != path[i].x) {
+                        diff += 1;
+                    }
+                }
+                var color = Math.floor(diff/mag * 255);
+                return rgb(color, color, color);
+            }
+
+            function hamming4(mag, mag_pow, path) {
+                var diff = 0;
+                for (var i = 0; i < mag; i++) {
+                    if (path[i].y != path[i].x) {
+                        diff += 1;
+                    }
+                }
+                if (diff == 4) {
+                    return "#FFFFFF";
+                } else {
+                    return "#000000";
+                }
+            }
+
+            function inSet(mag, mag_pow, x, y, func) {
                 // We want to build a "path" which is a series of choices. When
                 // one pixel gets split into four. This is actually the bits
                 // from MSB to LSB.
@@ -65,14 +253,21 @@
                     path.push(choice);
                     //alert(path);
                 }
-                return inSetByPath(mag, mag_pow, path);
+                return func(mag, mag_pow, path);
                 // return x == y || x == mag_pow - y || x == mag_pow/2 || y == mag_pow/2;
+            }
+
+            function genImage() {
+                var img = theCanvas.toDataURL("image/png");
+                document.getElementById("theThing").src = img;
             }
 
             // XXX must be power of two
             context.scale(theCanvas.width, theCanvas.height);
 
             function drawScreen() {
+                if (stop) { return; }
+
                 context.fillStyle = "#FF0000";
                 context.fillRect(0, 0, theCanvas.width, theCanvas.height);
 
@@ -84,10 +279,9 @@
 
                 for (var x = 0; x < box_width; x++) {
                     for (var y = 0; y < box_height; y++) {
-                        if (inSet(mag, mag_pow, x, y)) {
-                            context.fillStyle = "#FFFFFF";
-                            context.fillRect(x, y, 1, 1);
-                        }
+                        var color = inSet(mag, mag_pow, x, y, snowflakeanglething);
+                        context.fillStyle = color;
+                        context.fillRect(x, y, 1, 1);
                     }
                 }
 
@@ -97,6 +291,9 @@
                     mag += 1;
                     mag_pow *= 2;
                     context.scale(0.5, 0.5);
+                } else { 
+                    stop = true;
+                    // genImage();
                 }
             }
 
@@ -107,8 +304,8 @@
             //drawScreen();
 
             function gameLoop() {
-                setTimeout(gameLoop, 100);
                 drawScreen();
+                setTimeout(gameLoop, 1000);
             }
 
             gameLoop();
@@ -117,7 +314,9 @@
     </script>
 </head>
 <body style="background-color: blue;">
-    <canvas id="canvasOne" width="1024" height="1024">
+    <canvas id="canvasOne" width="512" height="512">
         Your browser does not support HTML5 canvas.
     </canvas>
+
+<img id="theThing" src="https://defuse.ca/images/ossbox_header_background.png" />
 </body>
