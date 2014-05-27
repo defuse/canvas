@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            var box_width = 1;
+            var box_height = 1;
+            var mag = 0;
+            var mag_pow = 1;
+
+            function inSetByPath(mag, mag_pow, path) {
+                for (var i = 1; i < mag; i++) {
+                    if (path[i].y == path[i].x || path[i-1].y == path[i].x) {
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            function inSet(mag, mag_pow, x, y) {
+                // We want to build a "path" which is a series of choices. When
+                // one pixel gets split into four. This is actually the bits
+                // from MSB to LSB.
+
+                var mask = mag_pow / 2;
+
+                path = [];
+                for (var i = 0; i < mag; i++) {
+                    choice = {};
+//                    alert("I:" + i);
+//                    alert("X:" + x);
+//                    alert("MASK:" + mask);
+                    if ((x & mask) == 0) {
+                        choice.x = 0;
+                    } else {
+                        choice.x = 1;
+                    }
+                    if ((y & mask) == 0) {
+                        choice.y = 0;
+                    } else {
+                        choice.y = 1;
+                    }
+                    mask = mask / 2;
+                    path.push(choice);
+                    //alert(path);
+                }
+                return inSetByPath(mag, mag_pow, path);
+                // return x == y || x == mag_pow - y || x == mag_pow/2 || y == mag_pow/2;
+            }
+
+            // XXX must be power of two
+            context.scale(theCanvas.width, theCanvas.height);
+
+            function drawScreen() {
+                context.fillStyle = "#FF0000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                var box_x = theCanvas.width / 2 - (box_width / 2);
+                var box_y = theCanvas.height / 2 - (box_height / 2);
+
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, box_width, box_height);
+
+                for (var x = 0; x < box_width; x++) {
+                    for (var y = 0; y < box_height; y++) {
+                        if (inSet(mag, mag_pow, x, y)) {
+                            context.fillStyle = "#FFFFFF";
+                            context.fillRect(x, y, 1, 1);
+                        }
+                    }
+                }
+
+                if (box_width*2 <= theCanvas.width && box_height*2 <= theCanvas.height) {
+                    box_width *= 2;
+                    box_height *= 2;
+                    mag += 1;
+                    mag_pow *= 2;
+                    context.scale(0.5, 0.5);
+                }
+            }
+
+            //drawScreen();
+            //drawScreen();
+            //drawScreen();
+            //drawScreen();
+            //drawScreen();
+
+            function gameLoop() {
+                setTimeout(gameLoop, 100);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body style="background-color: blue;">
+    <canvas id="canvasOne" width="1024" height="1024">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>
