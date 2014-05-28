@@ -51,13 +51,16 @@
                 return "#FFFFFF";
             }
 
+            // TODO: look at this http://lcni.uoregon.edu/~dow/Geek_art/Simple_recursive_systems/2-D/2x2_Symmetric/2x2_symmetric_L-systems.html
+
             function experiment1(mag, mag_pow, path) {
                 var count_1 = 0;
                 var count_2 = 0;
                 var count_3 = 0;
-                for (var i = 0; i < mag; i++) {
+                for (var i = mag-1; i >= 0; i--) {
                     count_1 *= 2;
                     count_2 *= 2;
+                    count_3 *= 2;
                     if (path[i].x) {
                         count_1++;
                     } else {
@@ -72,8 +75,13 @@
                         count_3++;
                     }
                 }
-                var diff = count_1*count_1 + count_2*count_2;
-                var color = diff % 256;
+                var diff = Math.abs(count_1*count_1 + count_2*count_2);
+                // if (Math.cos(diff) < -0.99) {
+                //     return "#FFFFFF";
+                // } else {
+                //     return "#000000";
+                // }
+                var color = Math.floor((Math.cos(diff/(mag_pow*mag_pow)) + 1)/2 * 255);
                 return rgb(color, color, color);
             }
 
@@ -305,7 +313,7 @@
 
                 for (var x = 0; x < box_width; x++) {
                     for (var y = 0; y < box_height; y++) {
-                        var color = inSet(mag, mag_pow, x, y, experiment1);
+                        var color = inSet(mag, mag_pow, x, y, hammingB);
                         context.fillStyle = color;
                         context.fillRect(x, y, 1, 1);
                     }
