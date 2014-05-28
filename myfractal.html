@@ -51,6 +51,32 @@
                 return "#FFFFFF";
             }
 
+            function experiment1(mag, mag_pow, path) {
+                var count_1 = 0;
+                var count_2 = 0;
+                var count_3 = 0;
+                for (var i = 0; i < mag; i++) {
+                    count_1 *= 2;
+                    count_2 *= 2;
+                    if (path[i].x) {
+                        count_1++;
+                    } else {
+                        count_1--;
+                    }
+                    if (path[i].y) {
+                        count_2++;
+                    } else {
+                        count_2--;
+                    }
+                    if (path[i].x == path[i].y) {
+                        count_3++;
+                    }
+                }
+                var diff = count_1*count_1 + count_2*count_2;
+                var color = diff % 256;
+                return rgb(color, color, color);
+            }
+
             function ah(mag, mag_pow, path) {
                 var sum1 = 0;
                 var sum2 = 0;
@@ -279,7 +305,7 @@
 
                 for (var x = 0; x < box_width; x++) {
                     for (var y = 0; y < box_height; y++) {
-                        var color = inSet(mag, mag_pow, x, y, snowflakeanglething);
+                        var color = inSet(mag, mag_pow, x, y, experiment1);
                         context.fillStyle = color;
                         context.fillRect(x, y, 1, 1);
                     }
@@ -293,7 +319,7 @@
                     context.scale(0.5, 0.5);
                 } else { 
                     stop = true;
-                    // genImage();
+                    genImage();
                 }
             }
 
