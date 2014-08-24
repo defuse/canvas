@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Computer-Directed Music Search</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+
+            function drawScreen() {
+                // We're in space so make the whole canvas black.
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+            }
+        }
+
+        // This MUST contain 9 elements.
+        var NOTES = [
+            // B (Middle A C major scale), going up
+            246.94,
+            261.63,
+            293.66,
+            329.63,
+            349.23,
+            392.0,
+            440.0,
+            493.88,
+            523.25
+        ]
+        if (NOTES.length !== 9) { alert('Bad NOTES.'); }
+
+        var BAR = 500;
+
+        function noteGap(melody, rhythm, position, sound_context, osc) {
+            if (osc !== null) {
+                osc.stop(0);
+            }
+            setTimeout( function() {
+                playSound(melody, rhythm, position, sound_context, osc);
+            }, BAR * 0.125);
+        }
+
+        function playSound(melody, rhythm, position, sound_context, osc) {
+            if (melody.length !== rhythm.length) {
+                alert('Invalid play parameters.');
+                return false;
+            }
+
+            if (osc !== null) {
+                osc.stop(0);
+            }
+
+            if (melody.length === 0) {
+                return true;
+            }
+
+            if (melody[0] == 'U') {
+                if (position == NOTES.length - 1) { /* stay */ }
+                if (position >= 4) { position += 1 }
+                if (position < 4) { position = 4 }
+            } else if (melody[0] == 'D') {
+                if (position == 0) { /* stay */ }
+                if (position <= 4) { position -= 1 }
+                if (position > 4) { position = 4 }
+            } else if (melody[0] == 'S') {
+                /* stay */
+            } else {
+                alert('Bad melody string.');
+                return false;
+            }
+
+            oscillator = sound_context.createOscillator();
+            oscillator.frequency.value = NOTES[position];
+            oscillator.connect(sound_context.destination);
+            oscillator.start(0);
+
+            var duration = 1000;
+            if (rhythm[0] == 'H') { duration = 0.5 * BAR; }
+            else if (rhythm[0] == 'Q') { duration = 0.25 * BAR; }
+            else if (rhythm[0] == 'E') { duration = 0.125 * BAR; }
+
+            setTimeout(function() {
+                melody_next = melody.slice(1);
+                rhythm_next = melody.slice(1);
+                noteGap(melody_next, rhythm_next, position, sound_context, oscillator);
+            }, duration);
+
+            return true;
+        }
+
+        function randomMelody() {
+            var melody = '';
+            for (var i = 0; i < 10; i++) {
+                var rand = Math.random();
+                if (rand < 0.3333333) {
+                    melody += 'U';
+                } else if (rand < 0.666666) {
+                    melody += 'D';
+                } else {
+                    melody += 'S';
+                }
+            }
+            return melody;
+        }
+
+        function randomRhythm() {
+            var rhythm = '';
+            for (var i = 0; i < 10; i++) {
+                var rand = Math.random();
+                if (rand < 0.3333333) {
+                    rhythm += 'H';
+                } else if (rand < 0.666666) {
+                    rhythm += 'Q';
+                } else {
+                    rhythm += 'E';
+                }
+            }
+            return rhythm;
+        }
+
+        var sound_context = new AudioContext;
+        playSound(randomMelody(), randomRhythm(), Math.floor(NOTES.length/2), sound_context, null);
+
+
+
+    </script>
+</head>
+<body style="background-color: black;">
+    <canvas id="canvasOne" width="500" height="500">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>
