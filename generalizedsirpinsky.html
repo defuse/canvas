@@ -25,25 +25,48 @@
 
             function drawBase(size) {
                 context.strokeStyle = "#FFFFFF";
-                context.strokeRect(0 + 0.5, 0 + 0.5, size - 1, size - 1);
 
-                return [
-                    {x: 0, y: 0, size: size / 2},
-                    {x: size / 2, y: 0, size: size / 2},
-                    {x: 0, y: size / 2, size: size / 2},
-                    {x: size / 2, y: size / 2, size: size / 2},
-                ];
+                context.beginPath();
+                context.moveTo(0 + 0.5, size + 0.5);
+                context.lineTo(size / 2 + 0.5, 0.5);
+                context.stroke();
+
+                context.beginPath();
+                context.moveTo(0 - 0.5, size - 0.5);
+                context.lineTo(size - 0.5, size - 0.5);
+                context.stroke();
+
+                context.beginPath();
+                context.moveTo(size / 2 + 0.5, 0.5);
+                context.lineTo(size - 0.5, size - 0.5);
+                context.stroke();
+
+                return [{x: 0, y: 0, size: size}];
             }
 
             function drawRecursive(x, y, size) {
                 context.strokeStyle = "#FFFFFF";
-                context.strokeRect(x + 0.5, y + 0.5, size, size);
-                if (size < 10) {
+
+                context.beginPath();
+                context.moveTo(x + size/2 + 0.5, y + size + 0.5);
+                context.lineTo(x + size/4 + 0.5, y + size/2 + 0.5);
+                context.stroke();
+
+                context.beginPath();
+                context.moveTo(x + size/2 + 0.5, y + size + 0.5);
+                context.lineTo(x + 3*size/4 + 0.5, y + size/2 + 0.5);
+                context.stroke();
+
+                context.beginPath();
+                context.moveTo(x + size/4 + 0.5, y + size/2 + 0.5);
+                context.lineTo(x + 3*size/4 + 0.5, y + size/2 + 0.5);
+                context.stroke();
+
+                if (size < 50) {
                     return [];
                 }
                 return [
-                    {x: x, y: y, size: size / 2},
-                    {x: x + size / 2, y: y, size: size / 2},
+                    {x: x + size / 4, y: y, size: size / 2},
                     {x: x, y: y + size / 2, size: size / 2},
                     {x: x + size / 2, y: y + size / 2, size: size / 2},
                 ];
@@ -82,7 +105,7 @@
     </script>
 </head>
 <body style="background-color: black;">
-    <canvas id="canvasOne" width="1024" height="1024">
+    <canvas id="canvasOne" width="512" height="512">
         Your browser does not support HTML5 canvas.
     </canvas>
 </body>
