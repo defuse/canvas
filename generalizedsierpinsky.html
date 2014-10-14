@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Newton approximation</title>
+    <title>Sierpinsky Generalization</title>
     <script src="modernizr.js"></script>
     <script type="text/javascript">
         window.addEventListener("load", eventWindowLoaded, false);
@@ -23,6 +23,7 @@
             var theCanvas = document.getElementById("canvasOne");
             var context = theCanvas.getContext("2d");
 
+            // Regular sierpinsky triangle code
             /*
             function drawBase(size) {
                 context.strokeStyle = "#FFFFFF";
@@ -125,7 +126,6 @@
             }
 
             function drawScreen() {
-                // We're in space so make the whole canvas black.
                 context.fillStyle = "#000000";
                 context.fillRect(0, 0, theCanvas.width, theCanvas.height);
 
