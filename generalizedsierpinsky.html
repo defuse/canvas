@@ -75,6 +75,7 @@
             }
             */
 
+            /*
             function drawBase(size) {
                 context.strokeStyle = "#FFFFFF";
                 context.lineWidth = 1;
@@ -124,9 +125,63 @@
                     {x: center3_x - radius, y: center3_y - radius, size: 2*radius},
                 ];
             }
+            */
+
+            function drawBase(size) {
+                return [{x: 0, y: 0, size: size, level: 0}];
+            }
+
+            function drawRecursive(x, y, size, level) {
+
+                var height_factor = 0.1;
+                context.strokeStyle = "#000000";
+                if (level % 2 == 0) {
+                    context.fillStyle = "#BBB";
+                } else {
+                    context.fillStyle = "#FFF";
+                }
+                context.beginPath();
+                context.moveTo(x + 0, y + size/2);
+                // context.lineTo(x + size/2, y + height_factor * size);
+                context.lineTo(x + size/2, y);
+                context.lineTo(x + size, y + size/2);
+                context.lineTo(x + size/2, y + size - height_factor * size);
+                context.closePath();
+                context.fill();
+                // context.stroke();
+
+                context.fillStyle = "#606060";
+                context.beginPath();
+                context.moveTo(x + 0, y + size/2);
+                context.lineTo(x + size/2, y + size - height_factor * size);
+                context.lineTo(x + size/2, y + size);
+                context.lineTo(x + 0, y + size/2 + height_factor * size);
+                context.closePath();
+                context.fill();
+
+                context.fillStyle = "#000000";
+                context.beginPath();
+                context.moveTo(x + size, y + size/2);
+                context.lineTo(x + size, y + size/2 + height_factor * size);
+                context.lineTo(x + size/2, y + size);
+                context.lineTo(x + size/2, y + size - height_factor * size);
+                context.closePath();
+                context.fill();
+
+                var new_size = 0.8 * size * 0.5;
+
+                return [
+                    {x: x + size/2 - new_size/2, y: y, size: new_size, level: level + 1},
+                    {x: x + size/2 - new_size/2, y: y + new_size, size: new_size, level: level + 1}
+                ];
+
+                return [
+                    {x: x + size/2 - new_size/2, y: y + size/2 - new_size/2 - 0.06*size, size: new_size, level: level + 1}
+                ];
+            }
 
             function drawScreen() {
-                context.fillStyle = "#000000";
+                context.fillStyle = "#202020";
                 context.fillRect(0, 0, theCanvas.width, theCanvas.height);
 
                 squares = drawBase(theCanvas.width);
@@ -134,9 +189,9 @@
                 while (squares.length > 0) {
                     nextsquares = [];
                     for (var i = 0; i < squares.length; i++) {
-                        if (squares[i].size >= 1) {
+                        if (squares[i].size >= 2) {
                             nextsquares = nextsquares.concat(
-                                drawRecursive(squares[i].x, squares[i].y, squares[i].size)
+                                drawRecursive(squares[i].x, squares[i].y, squares[i].size, squares[i].level)
                             );
                         }
                     }
