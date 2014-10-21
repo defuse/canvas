@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            var p1 = { x: -100, y: -50, z: 0 };
+            var p2 = { x: 100, y: -50, z: 0 };
+            var p3 = { x: 0, y: 50, z: 0 };
+            var p4 = { x: 0, y: 0, z: 200 };
+
+            var points = [p1, p2, p3, p4];
+
+            var lines = [ 
+                // Connect the base.
+                [p1, p2], [p2, p3], [p3, p1], 
+                // Connect all base points to the tip.
+                [p1, p4], [p2, p4], [p3, p4]
+            ];
+
+            var offset_x = 300;
+            var offset_y = 300;
+
+            var forward_angle = Math.PI / 50;
+            var left_angle = Math.PI / (50 * 3);
+
+            function rotate_forward(point) {
+                var x = point.x;
+                var y = point.y;
+                var z = point.z;
+
+                point.x = x;
+                point.y = Math.cos(forward_angle) * y + Math.sin(forward_angle) * z;
+                point.z = -Math.sin(forward_angle) * y + Math.cos(forward_angle) * z;
+            }
+
+            function rotate_left(point) {
+                var x = point.x;
+                var y = point.y;
+                var z = point.z;
+
+                point.y = y;
+                point.x = Math.cos(left_angle) * x + Math.sin(left_angle) * z;
+                point.z = -Math.sin(left_angle) * x + Math.cos(left_angle) * z;
+            }
+
+            function drawScreen() {
+                // We're in space so make the whole canvas black.
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                for (var i = 0; i < lines.length; i++) {
+                    var start = lines[i][0];
+                    var end = lines[i][1];
+
+                    context.strokeStyle = "#FFFFFF";
+                    context.beginPath();
+                    context.moveTo(offset_x + start.x, offset_y + start.y);
+                    context.lineTo(offset_x + end.x, offset_y + end.y);
+                    context.stroke();
+                }
+
+                rotate_forward(p1);
+                rotate_forward(p2);
+                rotate_forward(p3);
+                rotate_forward(p4);
+
+
+                rotate_left(p1);
+                rotate_left(p2);
+                rotate_left(p3);
+                rotate_left(p4);
+
+                left_angle = (left_angle + Math.PI / 10000);
+                forward_angle = (forward_angle + Math.PI / 50000);
+
+            }
+
+
+            function gameLoop() {
+                setTimeout(gameLoop, 20);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body style="background-color: black;">
+    <canvas id="canvasOne" width="500" height="500">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>
