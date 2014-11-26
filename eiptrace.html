@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script src="addrs2.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            var position = 0;
+
+            locations = [
+                [0x0000000000400fd4, "<main>:"],
+                [0x0000000000401350, "<showHelp>:"],
+                [0x00000000004013dd, "<getPassword>:"],
+                [0x0000000000401594, "<showRandomWords>:"],
+                [0x000000000040182d, "<getLeastCoveringMask>:"],
+                [0x000000000040185e, "<getRandom>:"],
+                [0x00000000004018e7, "<getRandomUnsignedLong>:"],
+                [0x0000000000401906, "<runtimeTests>:"],
+                [0x0000000000401f80, "<words>:"],
+                [0xFFFFFFFFFFFFFFFF, "END"],
+            ]
+
+            function normalizeLocations() {
+                for (var i = 0; i < the_addrs.length; i++) {
+                    for (var j = 0; j < locations.length - 3; j++) {
+                        var addr = the_addrs[i];
+                        if (locations[j][0] <= addr && addr <= locations[j+1][0]) {
+                            the_addrs[i] = addr - locations[j][0];
+                            break;
+                        }
+                    }
+                    if (the_addrs[i] > 10000) {
+                        the_addrs[i] = 800;
+                    }
+                }
+            }
+
+
+            function drawScreen() {
+                // We're in space so make the whole canvas black.
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                context.fillStyle = "#FF0000";
+                var horiz_pos = 0;
+                var array_pos = 0;
+
+                for (var i = 0; i < theCanvas.width; i++) {
+                    var addr = the_addrs[(position + i) % the_addrs.length];
+                    context.fillRect(i, addr, 1, 1);
+                }
+                position += 2;
+            }
+
+
+            function gameLoop() {
+                setTimeout(gameLoop, 30);
+                drawScreen();
+            }
+
+            normalizeLocations();
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body style="background-color: black;">
+    <canvas id="canvasOne" width="1000" height="1000">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>
