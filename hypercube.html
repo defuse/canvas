@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            var POSITION_INCREMENT = 0.1;
+            var SIDE_LENGTH = 200.0;
+
+            var hypercube_coords = {
+                x: 0,
+                y: 0,
+                z: 0,
+                t: 0,
+            }
+
+            var BASIS = [
+                { x: 1, y: 0, z: 0, t: 0 },
+                { x: 0, y: 1, z: 0, t: 0 },
+                { x: 0, y: 0, z: 1, t: 0 },
+                { x: 0, y: 0, z: 0, t: 1 },
+            ];
+
+            function rotate_around_y(v) {
+                var angle = Math.PI/(120 * 2);
+                var v2 = {x: 0, y: 0, z: 0, t: 0};
+                v2.y = v.y;
+                v2.t = v.t;
+                v2.x = v.x*Math.cos(angle) - v.z * Math.sin(angle);
+                v2.z = v.x*Math.sin(angle) + v.z * Math.cos(angle);
+                return v2;
+            }
+
+            function rotate_around_x(v) {
+                var angle = Math.PI/(80 * 2);
+                var v2 = {x: 0, y: 0, z: 0, t: 0};
+                v2.x = v.x;
+                v2.t = v.t;
+                v2.y = v.y*Math.cos(angle) - v.z * Math.sin(angle);
+                v2.z = v.y*Math.sin(angle) + v.z * Math.cos(angle);
+                return v2;
+            }
+
+            // not sure exactly which axis this rotates around lol
+            function rotate_around_z(v) {
+                var angle = Math.PI/(80 * 2);
+                var v2 = {x: 0, y: 0, z: 0, t: 0};
+                v2.z = v.z;
+                v2.y = v.y;
+                v2.t = v.t*Math.cos(angle) - v.x * Math.sin(angle);
+                v2.x = v.t*Math.sin(angle) + v.x * Math.cos(angle);
+                return v2;
+            }
+
+            function transform_basis(basis, t) {
+                //var new_basis = [0, 1, 2, 3];
+                basis[0] = t(basis[0]);
+                basis[1] = t(basis[1]);
+                basis[2] = t(basis[2]);
+                basis[3] = t(basis[3]);
+                return basis;
+            }
+
+            function dot(v1, v2) {
+                return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z + v1.t*v2.t;
+            }
+
+            function subtract(v1, v2) {
+                return {
+                    x: v1.x - v2.x,
+                    y: v1.y - v2.y,
+                    z: v1.z - v2.z,
+                    t: v1.t - v2.t
+                };
+            }
+
+            function basis_linear_comb(basis, point) {
+                var v = { x: 0, y: 0, z: 0, t: 0 };
+                v.x = point.x * basis[0].x + point.y * basis[1].x + point.z * basis[2].x + point.t * basis[3].x;
+                v.y = point.x * basis[0].y + point.y * basis[1].y + point.z * basis[2].y + point.t * basis[3].y;
+                v.z = point.x * basis[0].z + point.y * basis[1].z + point.z * basis[2].z + point.t * basis[3].z;
+                v.t = point.x * basis[0].t + point.y * basis[1].t + point.z * basis[2].t + point.t * basis[3].t;
+                return v;
+            }
+
+            function drawHyperCubeAt(basis, coords) {
+                // Construct the hypercube's points.
+                var points = [];
+                for (var x = -1; x <= 1; x += 2) {
+                    for (var y = -1; y <= 1; y += 2) {
+                        for (var z = -1; z <= 1; z += 2) {
+                            for (var t = -1; t <= 1; t += 2) {
+                                var point = {
+                                    x: x*(SIDE_LENGTH/2) + coords.x,
+                                    y: y*(SIDE_LENGTH/2) + coords.y,
+                                    z: z*(SIDE_LENGTH/2) + coords.z,
+                                    t: t*(SIDE_LENGTH/2) + coords.t,
+                                };
+                                points.push(point);
+                            }
+                        }
+                    }
+                }
+
+                // Convert the points to the basis:
+                for (var i = 0; i < points.length; i++) {
+                    points[i] = basis_linear_comb(basis, points[i]);
+                }
+
+                // Find the lines (pairs of points).
+                var lines = [];
+                for (var i = 0; i < points.length; i++) {
+                    for (var j = i+1; j < points.length; j++) {
+                        var line_vector = subtract(points[i], points[j]);
+                        // The lines between points in our hypercube are exactly
+                        // those whose distances from each other is the side
+                        // length.
+                        if (Math.abs(dot(line_vector, line_vector) - SIDE_LENGTH*SIDE_LENGTH) < 0.01) {
+                            lines.push([points[i], points[j]]);
+                        }
+                    }
+                }
+
+                // Project onto R^2 (x and y).
+                for (var i = 0; i < lines.length; i++) {
+                    var p1 = lines[i][0];
+                    var p2 = lines[i][1];
+
+
+                    // FIXME: this isn't the right way to do it, first off
+                    // brightness is inverse square. Second, we should go from
+                    // the middle point of the line. Third, pixel brightness
+                    // isn't linear in the rgb value, there's an exponential
+                    // curve thing.
+
+                    // FIXME: If we wanted a "point of view" we'd need to not
+                    // draw shit that's "behind" us (i.e. positive z)
+
+                    // the following is very wrong, don't look at it
+                    var color_factor = (p1.z + SIDE_LENGTH/2) / SIDE_LENGTH;
+                    var color = Math.floor(128 * color_factor);
+                    color = Math.min(color, 255);
+                    color = 255 - color;
+                    
+                    context.strokeStyle = "#FFFFFF";
+                    context.strokeStyle = "rgb(" + color + "," + color + "," + color + ")";
+                    context.lineWidth = 3;
+                    context.beginPath();
+                    context.moveTo(250 + p1.x, 250 + p1.y);
+                    context.lineTo(250 + p2.x, 250 + p2.y);
+                    context.stroke();
+                }
+
+            }
+
+            function drawScreen() {
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+                drawHyperCubeAt(transform_basis(transform_basis(transform_basis(BASIS, rotate_around_y), rotate_around_x), rotate_around_z), hypercube_coords);
+            }
+
+            function gameLoop() {
+                drawScreen();
+                setTimeout(gameLoop, 30);
+            }
+
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body style="background-color: white;">
+    <canvas id="canvasOne" width="500" height="500">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>

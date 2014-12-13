@@ -40,40 +40,39 @@
             ]
 
             function normalizeLocations() {
+                var new_the_addrs = [];
                 for (var i = 0; i < the_addrs.length; i++) {
                     for (var j = 0; j < locations.length - 3; j++) {
                         var addr = the_addrs[i];
                         if (locations[j][0] <= addr && addr <= locations[j+1][0]) {
-                            the_addrs[i] = addr - locations[j][0];
+                            new_the_addrs.push(addr - locations[j][0]);
                             break;
                         }
                     }
-                    if (the_addrs[i] > 10000) {
-                        the_addrs[i] = 800;
-                    }
                 }
+                the_addrs = new_the_addrs;
             }
 
 
             function drawScreen() {
                 // We're in space so make the whole canvas black.
-                context.fillStyle = "#000000";
+                context.fillStyle = "#FFFFFF";
                 context.fillRect(0, 0, theCanvas.width, theCanvas.height);
 
-                context.fillStyle = "#FF0000";
+                context.fillStyle = "#000000";
                 var horiz_pos = 0;
                 var array_pos = 0;
 
                 for (var i = 0; i < theCanvas.width; i++) {
                     var addr = the_addrs[(position + i) % the_addrs.length];
-                    context.fillRect(i, addr, 1, 1);
+                    context.fillRect(4*i, 4*addr, 4, 4);
                 }
-                position += 2;
+                position += 1;
             }
 
 
             function gameLoop() {
-                setTimeout(gameLoop, 30);
+                setTimeout(gameLoop, 50);
                 drawScreen();
             }
 
@@ -84,7 +83,7 @@
     </script>
 </head>
 <body style="background-color: black;">
-    <canvas id="canvasOne" width="1000" height="1000">
+    <canvas id="canvasOne" width="10000" height="1000">
         Your browser does not support HTML5 canvas.
     </canvas>
 </body>
