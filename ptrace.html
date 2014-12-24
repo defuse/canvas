@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script src="jquery-1.11.2.min.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        var DOT_SIZE = 5;
+        var DATA_URL = "out2.zz";
+
+        var computation = [];
+        var time = 0;
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            function drawScreen() {
+                context.fillStyle = "#FFFFFF";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                if (computation.length == 0) {
+                    return;
+                }
+
+                var dots = Math.floor(theCanvas.width / DOT_SIZE);
+                for (var i = 0; i < dots; i++) {
+                    var config = computation[(time + i) % computation.length];
+
+                    if (config.invalid) {
+                        /* Fill the column. */
+                        context.fillStyle = "#FF0000";
+                        context.fillRect(i * DOT_SIZE, 0, DOT_SIZE, theCanvas.height);
+                    } else {
+                        /* Fill the column. */
+                        context.fillStyle = config.color;
+                        context.fillRect(i * DOT_SIZE, 0, DOT_SIZE, theCanvas.height);
+
+                        /* Fill the dot. */
+                        context.fillStyle = "#000000";
+                        context.fillRect(i * DOT_SIZE, config.instr*DOT_SIZE, DOT_SIZE, DOT_SIZE);
+                    }
+                }
+
+                time = (time + 1) % computation.length;
+            }
+
+            function gameLoop() {
+                setTimeout(gameLoop, 100);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+        function littleEndianToInt(array, pos) {
+            var val = 0;
+            val += array[pos];
+            val += array[pos+1] * 256;
+            val += array[pos+2] * 256 * 256;
+            val += array[pos+3] * 256 * 256 * 256;
+            return val;
+        }
+
+        function parse_data(data) {
+            if (data.length % 8 !== 0) {
+                alert('Bad data!');
+                return;
+            }
+            var computation = [];
+            var colors = [
+                "#FFFFFF",
+                "#EEEEEE",
+            ];
+            var last_color = 0;
+            var last_func = -1;
+            for (var i = 0; i < data.length; i += 8) {
+                var obj = {};
+                obj.func = littleEndianToInt(data, i);
+                if (obj.func == 0xFFFFFFFF) {
+                    obj.invalid = true;
+                } else {
+                    obj.invalid = false;
+                }
+                obj.instr = littleEndianToInt(data, i+4);
+                if (obj.func != last_func) {
+                    last_color = (last_color + 1) % colors.length;
+                    last_func = obj.func;
+                }
+                obj.color = colors[last_color];
+                computation.push(obj);
+            }
+            return computation;
+        }
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', DATA_URL, true);
+        xhr.responseType = 'arraybuffer';
+         
+        xhr.onload = function(e) {
+          var responseArray = new Uint8Array(this.response);
+          computation = parse_data(responseArray);
+        };
+         
+        xhr.send();
+
+    </script>
+</head>
+<body>
+    <p>
+    <canvas id="canvasOne" width="1000" height="750" style="border: solid white 1px;">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>
