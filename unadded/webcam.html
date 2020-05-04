@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Webcam Test</title>
+    <script type="text/javascript">
+
+        window.addEventListener("load", eventWindowLoaded, false);
+        function userMediaSupported() {
+            return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
+                    navigator.mozGetUserMedia || navigator.msGetUserMedia);
+        }
+
+        function eventWindowLoaded() {
+            if (userMediaSupported()) {
+                startVideo();
+            } else {
+                alert('getUserMedia() Not Supported');
+            }
+        }
+
+        function startVideo() {
+            alert(1);
+            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
+                navigator.mozGetUserMedia || navigator.msGetUserMedia;
+            alert(2);
+            navigator.getUserMedia({video: true, audio: true}, mediaSuccess, mediaFail);
+            alert(3);
+        }
+
+        function mediaFail(error) {
+            alert("Failed to get user media:"  + error.code);
+        }
+        
+        function mediaSuccess(userMedia) {
+            alert('hi');
+            window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+            var video = document.getElementById("thevideo");
+            video.src = window.URL.createObjectURL(userMedia);
+            video.onloadedmetadata = doCoolStuff;
+        }
+
+        function doCoolStuff() {
+            alert("Do cool stuff");
+        }
+    </script>
+</head>
+<body>
+    <div>
+        <video id="showvideo" autoplay></video>
+    </div>
+</body>
+</html>

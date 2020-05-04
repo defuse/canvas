@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+            var time = 0;
+
+            function wave1(t, x) {
+                return Math.sin((t / 1000) * 3 * Math.PI + (x / theCanvas.width) * 6 * Math.PI);
+            }
+
+            function wave2(t, x) {
+                return Math.sin((t / 1000) * 5 * Math.PI + (x / theCanvas.width) * 12 * Math.PI);
+            }
+
+            function height_to_color(height) {
+                var color = Math.floor(height * 255);
+                return "rgb(" + color + ", " + color + ", " + color + ")";
+                if (height < -0.6) {
+                    return "#0000FF";
+                } else if (height < -0.3) {
+                    return "#3030FF";
+                } else if (height < 0) {
+                    return "#00FFFF";
+                } else if (height < 0.3) {
+                    return "#00FF00";
+                } else if (height < 0.6) {
+                    return "#FFFF00";
+                } else { 
+                    return "#FF0000";
+                }
+            }
+
+            var RESOLUTION = 1;
+
+            function drawScreen() {
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+                for (i = 0; i < theCanvas.width; i += RESOLUTION) {
+                    for (j = 0; j < theCanvas.height; j += RESOLUTION) {
+                        var height = (wave1(time, i) + wave2(time, Math.sqrt(i*i + j*j))) / 2;
+                        context.fillStyle = height_to_color(height);
+                        context.fillRect(i, j, RESOLUTION, RESOLUTION);
+                    }
+                }
+            }
+
+
+            function gameLoop() {
+                setTimeout(gameLoop, 50);
+                time += 5;
+                // FIXME: time overflow
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body>
+    <canvas id="canvasOne" width="50" height="50" style="border: solid white 1px;">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BQP</title>
+    <script src="modernizr.js"></script>
+    <script src="twoqubits.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        /* Holds all of the qubits. */
+        var qubits = [];
+        /* The size of the qubit square in pixels. 
+           Must divide canvas height and width. */
+        var QUBIT_WIDTH = 50;
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            /* Find the canvas and drawing context. */
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            /* Find out how many qubits are on the canvas. */
+            var QUBITS_X = Math.floor(theCanvas.width / QUBIT_WIDTH);
+            var QUBITS_Y = Math.floor(theCanvas.height / QUBIT_WIDTH);
+            var TOTAL_QUBITS = QUBITS_X * QUBITS_Y;
+
+            /* Set the qubits in a random state across a vertical line of
+               symmetry, i.e. the second qubit is in the mirror-image position
+               of the first. This makes all the totally-measured states
+               symmetric, so it looks cool. */
+            for (var x = 0; x < Math.floor(QUBITS_X / 2); x++) {
+                for (var y = 0; y < QUBITS_Y; y++) {
+                    var pos1 = { x: x, y: y };
+                    var pos2 = { x: QUBITS_X - x - 1, y: y };
+
+                    /* Generate a random-ish state. */
+                    var a = Math.random();
+                    var b = Math.random();
+                    var c = Math.random();
+                    var d = Math.random();
+                    var normalize = Math.sqrt(a*a + b*b + c*c + d*d);
+                    a /= normalize;
+                    b /= normalize;
+                    c /= normalize;
+                    d /= normalize;
+                    qubits.push(
+                        new twoqubits.TwoQubitSystem(
+                            a,
+                            b,
+                            c,
+                            d,
+                            pos1,
+                            pos2
+                        )
+                    );
+                }
+            }
+
+            /* Make a lookup table, so it's easy to map mouse coordinates to the
+               qubit pair the mouse is over. */
+            var pos_lookup = {};
+            for (var i = 0; i < qubits.length; i++) {
+                var qubit = qubits[i];
+                pos_lookup[qubit.posQ1.x * QUBITS_Y + qubit.posQ1.y] = i;
+                pos_lookup[qubit.posQ2.x * QUBITS_Y + qubit.posQ2.y] = i;
+            }
+
+            /* Find the offset of the mouse within the canvas. */
+            function getMousePos(canvas, evt) {
+                var rect = canvas.getBoundingClientRect();
+                return {
+                    x: evt.clientX - rect.left,
+                    y: evt.clientY - rect.top
+                }
+            }
+
+            /* Add the mousemove event, so hovering measures the qubits. */
+            theCanvas.addEventListener('mousemove', function(evt) {
+                var mousePos = getMousePos(theCanvas, evt);
+                var mouse_x = Math.floor(mousePos.x / QUBIT_WIDTH);
+                var mouse_y = Math.floor(mousePos.y / QUBIT_WIDTH);
+
+                /* A weird bug where some pixels before the canvas count as part
+                   of the canvas. */
+                if (mouse_x < 0 || mouse_y < 0) {
+                    return;
+                }
+
+                /* Measure the qubit the mouse is over. */
+                var i = pos_lookup[ mouse_x * QUBITS_Y + mouse_y ];
+                var pos1 = qubits[i].posQ1;
+                var pos2 = qubits[i].posQ2;
+                /* The pos_lookup table gives us the qubit pair, need to
+                   manually check which of the pair we're on. */
+                if (pos1.x == mouse_x && pos1.y == mouse_y) {
+                    qubits[i].measureFirstQubit();
+                } else if (pos2.x == mouse_x && pos2.y == mouse_y) {
+                    qubits[i].measureSecondQubit();
+                }
+            }, false);
+
+            /* The main drawing loop. */
+            function drawScreen() {
+                context.fillStyle = "#808080";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                for (var i = 0; i < qubits.length; i++) {
+                    var qubit = qubits[i];
+
+                    var shade1 = qubit.getQubit1Shade();
+                    var shade2 = qubit.getQubit2Shade();
+
+                    context.fillStyle = "rgb(" + shade1 + "," + shade1 + "," + shade1 + ")";
+                    context.fillRect(qubit.posQ1.x * QUBIT_WIDTH, qubit.posQ1.y * QUBIT_WIDTH, QUBIT_WIDTH, QUBIT_WIDTH);
+
+                    context.fillStyle = "rgb(" + shade2 + "," + shade2 + "," + shade2 + ")";
+                    context.fillRect(qubit.posQ2.x * QUBIT_WIDTH, qubit.posQ2.y * QUBIT_WIDTH, QUBIT_WIDTH, QUBIT_WIDTH);
+                }
+
+                /* Hacky non-unitary operation to move the qubits closer to
+                   a bell state at every time step. */
+                for (var i = 0; i < qubits.length; i++) {
+                    qubits[i].decay();
+                }
+            }
+
+            function gameLoop() {
+                setTimeout(gameLoop, 50);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+        function measureAll() {
+            for (var i = 0; i < qubits.length; i++) {
+                qubits[i].measureFirstQubit();
+                qubits[i].measureSecondQubit();
+            }
+        }
+
+    </script>
+</head>
+<body style="background-color: #808080; padding: 0; margin: 0;">
+    <canvas id="canvasOne" width="800" height="600" style="cursor: crosshair;">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+    <br />
+    <input type="button" onclick="measureAll();" value="Measure All" />
+</body>

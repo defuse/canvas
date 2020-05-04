@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Long Cat HTML5 Canvas Version</title>
+<script src="modernizr.js"></script>
+<script src="jsHash.js"></script>
+<script src="sjcl.js"></script>
+<script src="seedrandom.js"></script>
+<script type="text/javascript">
+
+window.addEventListener("load", eventWindowLoaded, false);
+
+function eventWindowLoaded() {
+    canvasApp();
+}
+
+function canvasSupport() {
+    return Modernizr.canvas;
+}
+
+function canvasApp() {
+    if (!canvasSupport()) {
+        return;
+    }
+
+    var leftButton = document.getElementById("btnLeft");
+    leftButton.addEventListener("click", leftClick, false);
+
+    var rightButton = document.getElementById("btnRight");
+    rightButton.addEventListener("click", rightClick, false);
+
+    var backButton = document.getElementById("btnBack");
+    backButton.addEventListener("click", backClick, false);
+
+    var revealButton = document.getElementById("btnReveal");
+    revealButton.addEventListener("click", revealClick, false);
+
+    var restartButton = document.getElementById("btnRestart");
+    restartButton.addEventListener("click", restartClick, false);
+
+    var noHintButton = document.getElementById("btnNoHint");
+    noHintButton.addEventListener("click", noHintClick, false);
+
+    var theCanvas = document.getElementById("canvasOne");
+    var context = theCanvas.getContext("2d");
+
+    var floor_colors = ["#630021", "#962D00", "#FFEA00", "#1EFF00", "#00FFC3", "#0077FF", "#9000FF", "#FF00DD", "#FF002F"];
+    var seed = "abc";
+    var path = [];
+    var train_path = [];
+    var training = true;
+
+    newPath();
+
+    function drawScreen() {
+        context.fillStyle = "#000000";
+        context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+        var subseed = sha256(seed + path.join(""));
+        Math.seedrandom(subseed);
+
+        // colored floor
+        var leftColor = floor_colors[Math.floor(Math.random() * floor_colors.length)];
+        context.fillStyle = leftColor;
+        context.fillRect(0, 0, theCanvas.width / 2, theCanvas.height);
+        var rightColor = floor_colors[Math.floor(Math.random() * floor_colors.length)];
+        context.fillStyle = rightColor;
+        context.fillRect(theCanvas.width / 2, 0, theCanvas.width / 2, theCanvas.height);
+
+        // path
+        context.fillStyle = "#CCCCCC";
+        context.fillRect(theCanvas.width / 2 - 25, theCanvas.height / 2, 50, theCanvas.height / 2);
+        context.fillRect(0, theCanvas.height / 2 - 25, theCanvas.width, 50);
+
+
+        // random stuff
+        for (var i = 0; i < 10; i++) {
+            var rectColor = floor_colors[Math.floor(Math.random() * floor_colors.length)];
+            if (rectColor == leftColor || rectColor == rightColor ) {
+                continue;
+            }
+            var rectX = Math.floor(Math.random() * theCanvas.width);
+            var rectY = Math.floor(Math.random() * theCanvas.height);
+            var rectWidth = 10 + Math.floor(Math.random() * 100);
+            var rectHeight= 10 + Math.floor(Math.random() * 100);
+            context.fillStyle = rectColor;
+            context.fillRect(rectX, rectY, rectWidth, rectHeight);
+        }
+
+        // doors
+        if (training && train_path[path.length] == "L") {
+            context.fillStyle = "#505050";
+        } else {
+            context.fillStyle = "#000000";
+        }
+        context.fillRect(0, theCanvas.height / 2 - 50, 20, 100);
+        if (training && train_path[path.length] == "R") {
+            context.fillStyle = "#505050";
+        } else {
+            context.fillStyle = "#000000";
+        }
+        context.fillRect(theCanvas.width - 20, theCanvas.height / 2 - 50, 20, 100);
+        context.fillStyle = "#000000";
+        context.fillRect(theCanvas.width / 2 - 50, theCanvas.height - 20, 100, 20);
+
+        context.fillStyle = "#FFFFFF";
+        context.font = "bold 30px arial";
+        context.fillText(path.length.toString(), 30, 30);
+
+    }
+
+    function newPath() {
+        var words = sjcl.random.randomWords(16, 0);
+        Math.seedrandom(words.toString());
+        for (var i = 0; i < 64; i++) {
+            if (Math.random() > 0.5) {
+                train_path.push("L");
+            } else {
+                train_path.push("R");
+            }
+        }
+    }
+
+    function leftClick() {
+        path.push("L");
+        drawScreen();
+    }
+
+    function rightClick() {
+        path.push("R");
+        drawScreen();
+    }
+
+    function backClick() {
+        path.pop();
+        drawScreen();
+    }
+
+    function restartClick() {
+        path = [];
+        drawScreen();
+    }
+
+    function revealClick() {
+        alert(sha256(seed + path.join("")));
+    }
+
+    function noHintClick() {
+        if (training) {
+            training = false;
+        } else {
+            training = true;
+        }
+        restartClick();
+    }
+
+    function sha256(text) {
+        return jsHash.sha2.str_sha256(text);
+    }
+
+    drawScreen();
+}
+
+</script>
+</head>
+    <body>
+        <div style="position: absolute; top: 50px; left: 50px;">
+            <canvas id="canvasOne" width="640" height="640" style="border: solid black 5px;">
+                Your browser does not support HTML5 canvas.
+            </canvas>
+            <form>
+                <input type="button" id="btnLeft" value="Left" />
+                <input type="button" id="btnRight" value="Right" />
+                <input type="button" id="btnBack" value="Back" />
+                <input type="button" id="btnRestart" value="Restart" />
+                <input type="button" id="btnNoHint" value="Disable Hints" />
+                <input type="button" id="btnReveal" value="Generate Key" />
+            </form>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            // There will be two bodies: The "sun" and the "earth".
+
+            var grid = new Array(theCanvas.width);
+            for (var i = 0; i < theCanvas.width; i++) {
+                grid[i] = new Array(theCanvas.height);
+                for (var j = 0; j < theCanvas.height; j++) {
+                    grid[i][j] = 0;
+                }
+            }
+
+            /* Outline with black. */
+            for (var i = 0; i < grid.length; i++) {
+                grid[i][0] = 1;
+                grid[i][grid[i].length - 1] = 1;
+
+                grid[0][i] = 1;
+                grid[grid.length - 1][i] = 1;
+            }
+
+            for (var i = 0; i < 7000; i++) {
+                var x = Math.floor(Math.random() * grid.length);
+                var y = Math.floor(Math.random() * grid[0].length);
+                grid[x][y] = 1;
+            }
+
+            var pos_x = Math.floor(theCanvas.width / 2);
+            var pos_y = Math.floor(theCanvas.height / 2);
+
+            function drawGrid()
+            {
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                for (var x = 0; x < grid.length; x++) {
+                    for (var y = 0; y < grid[x].length; y++) {
+                        if (grid[x][y] == 1) {
+                            context.fillStyle = "#FFFFFF";
+                            context.fillRect(x, y, 1, 1);
+                        }
+                    }
+                }
+
+                context.fillStyle = "#FF0000";
+                context.fillRect(pos_x, pos_y, 1, 1);
+            }
+
+
+            function findDistance(direction)
+            {
+                var future_pos_x = pos_x;
+                var future_pos_y = pos_y;
+                var distance = 0;
+                do {
+                    future_pos_x += direction[0];
+                    future_pos_y += direction[1];
+                    distance += 1;
+                } while (grid[future_pos_x][future_pos_y] == 0)
+                distance -= 1;
+                return distance;
+            }
+
+            function moveInSafestDirection()
+            {
+                /* Mark the current position */
+                grid[pos_x][pos_y] = 1;
+
+                var directions = [
+                    [0, 1], [0, -1],
+                    [1, 0], [-1, 0],
+                    [1, 1], [-1, -1],
+                    [1, -1], [-1, 1]
+                ];
+
+                var best_distance = 0;
+                var best_direction = null;
+                for (var d = 0; d < directions.length; d++) {
+                    var distance = findDistance(directions[d]);
+                    if (distance > best_distance) {
+                        best_distance = distance;
+                        best_direction = directions[d];
+                    }
+                }
+
+                if (best_direction != null) {
+                    pos_x += best_direction[0];
+                    pos_y += best_direction[1];
+                } else {
+                    pos_x += 1;
+                    pos_y += 1;
+                }
+            }
+
+            function drawScreen() {
+                drawGrid();
+                for (var i = 0; i < 50; i++) {
+                    moveInSafestDirection();
+                }
+            }
+
+
+            function gameLoop() {
+                setTimeout(gameLoop, 50);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body style="background-color: black;">
+    <canvas id="canvasOne" width="1000" height="1000">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>

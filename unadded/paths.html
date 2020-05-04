@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton approximation</title>
+    <script src="modernizr.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded() {
+            canvasApp();
+        }
+
+        function canvasSupport() {
+            return Modernizr.canvas;
+        }
+
+        function canvasApp() {
+            if (!canvasSupport()) {
+                return;
+            }
+
+            var theCanvas = document.getElementById("canvasOne");
+            var context = theCanvas.getContext("2d");
+
+            // There will be two bodies: The "sun" and the "earth".
+
+            var grid = new Array(theCanvas.width);
+            for (var i = 0; i < theCanvas.width; i++) {
+                grid[i] = new Array(theCanvas.height);
+                for (var j = 0; j < theCanvas.height; j++) {
+                    grid[i][j] = 0;
+                }
+            }
+
+            /* Outline with black. */
+            for (var i = 0; i < grid.length; i++) {
+                grid[i][0] = 1;
+                grid[i][grid[i].length - 1] = 1;
+
+                grid[0][i] = 1;
+                grid[grid.length - 1][i] = 1;
+            }
+
+            /*
+            for (var i = 0; i < 7000; i++) {
+                var x = Math.floor(Math.random() * grid.length);
+                var y = Math.floor(Math.random() * grid[0].length);
+                grid[x][y] = 1;
+            }
+            */
+
+            var pos_x = Math.floor(theCanvas.width / 2);
+            var pos_y = Math.floor(theCanvas.height / 2);
+
+            var last_pos_x = pos_x - 10;
+            var last_pos_y = pos_y;
+
+            var a_x = 0;
+            var a_y = 0;
+            var v_x = 0;
+            var v_y = 0;
+
+            function drawGrid()
+            {
+                context.fillStyle = "#000000";
+                context.fillRect(0, 0, theCanvas.width, theCanvas.height);
+
+                for (var x = 0; x < grid.length; x++) {
+                    for (var y = 0; y < grid[x].length; y++) {
+                        if (grid[x][y] == 1) {
+                            context.fillStyle = "#FFFFFF";
+                            context.fillRect(x, y, 1, 1);
+                        }
+                    }
+                }
+
+                context.fillStyle = "#FF0000";
+                context.fillRect(pos_x, pos_y, 1, 1);
+                /*
+                context.fillStyle = "#FFFFFF";
+                context.fillRect(pos_x, pos_y, 1, 1);
+                */
+            }
+
+
+
+            function move()
+            {
+                /* Mark the current position */
+                if (typeof grid[pos_x] === 'undefined') {
+                    alert(pos_x);
+                }
+                grid[pos_x][pos_y] = 1;
+
+                /* Compute the new acclerations. */
+
+                /* Just fucking around. */
+                //a_y = pos_x - last_pos_x;
+                //a_x = pos_y - last_pos_y;
+
+                //a_y = a_y / Math.sqrt(a_y*a_y + a_x*a_x);
+                //a_x = a_x / Math.sqrt(a_y*a_y + a_x*a_x);
+
+                //a_y *= 3;
+                //a_x *= 3;
+
+                var ACCEL = 10;
+
+                a_x = ACCEL*Math.random() - ACCEL/2;
+                a_y = ACCEL*Math.random() - ACCEL/2;
+
+                /* Compute the next position */
+                last_pos_x = pos_x;
+                last_pos_y = pos_y;
+                v_x += a_x;
+                v_y += a_y;
+                if (v_x > 9) { v_x = 9; }
+                if (v_x < -9) { v_x = -9; }
+                if (v_y > 9) { v_y = 9; }
+                if (v_y < -9) { v_y = -9; }
+                pos_x = Math.floor(v_x + pos_x);
+                pos_y = Math.floor(v_y + pos_y);
+
+                if (pos_x >= grid.length) {
+                    pos_x -= grid.length;
+                }
+                if (pos_y >= grid[0].length) {
+                    pos_y -= grid[0].length;
+                }
+
+                if (pos_x < 0) {
+                    pos_x += grid.length;
+                }
+                if (pos_y < 0) {
+                    pos_y += grid[0].length;
+                }
+
+            }
+
+            function drawScreen() {
+                drawGrid();
+                for (var i = 0; i < 20; i++) {
+                    move();
+                }
+            }
+
+
+            function gameLoop() {
+                setTimeout(gameLoop, 20);
+                drawScreen();
+            }
+
+            gameLoop();
+        }
+
+    </script>
+</head>
+<body style="background-color: black;">
+    <canvas id="canvasOne" width="1000" height="1000">
+        Your browser does not support HTML5 canvas.
+    </canvas>
+</body>
